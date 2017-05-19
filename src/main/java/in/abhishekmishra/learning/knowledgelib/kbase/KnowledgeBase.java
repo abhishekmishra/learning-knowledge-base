@@ -1,6 +1,5 @@
 package in.abhishekmishra.learning.knowledgelib.kbase;
 
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 
@@ -12,11 +11,13 @@ public interface KnowledgeBase {
 	public Resource addConcept(Concept concept);
 
 	public boolean conceptExists(String conceptName);
-	
+
 	public Resource getConceptMetaResource();
 
-	public Property getIsAProperty(); 
-	
-	public Model getModel();
+	public Property getIsAProperty();
+
+	public <T> T executeTransaction(KnowledgeBaseTransaction<T> transaction);
+
+	public <T> T executeQuery(KnowledgeBaseQuery<T> query);
 
 }

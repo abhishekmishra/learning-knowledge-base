@@ -1,61 +1,51 @@
 package in.abhishekmishra.learning.knowledgelib.kbase;
 
 import org.apache.jena.query.Dataset;
+import org.apache.jena.query.ReadWrite;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.tdb.TDBFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class KnowledgeBaseImpl implements KnowledgeBase {
+public class KnowledgeBaseImpl extends SkeletalKnowledgeBaseImpl implements KnowledgeBase {
+	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeBaseImpl.class);
 
 	private String dbFolder;
-	private Dataset ds;
-	private Model model;
-
-	private Resource conceptMetaResource;
-	private Property isAProperty;
 
 	public KnowledgeBaseImpl(String dbFolder) {
+		super();
 		this.dbFolder = dbFolder;
-
-		// initDatabase();
-		initDefaultInMemoryModel();
-
-		conceptMetaResource = model.createResource(CONCEPT_NS + "Concept");
-		isAProperty = model.createProperty(RELATIONS_NS + "isA");
 	}
 
-	private void initDatabase() {
-		ds = TDBFactory.createDataset(dbFolder);
-		model = ds.getDefaultModel();
-	}
-
-	private void initDefaultInMemoryModel() {
-		model = ModelFactory.createDefaultModel();
-	}
-
-	public Resource addConcept(Concept concept) {
-		Resource conceptResource = model.createResource(CONCEPT_NS + concept.getName());
-
-		model.add(conceptResource, isAProperty, conceptMetaResource);
-		return conceptResource;
-	}
-
-	public boolean conceptExists(String conceptName) {
-		Resource conceptResource = model.getResource(CONCEPT_NS + conceptName);
-		return conceptResource != null;
-	}
-
-	public void writeModel() {
-		// print the Model as RDF/XML
-		model.write(System.out, "RDF/XML-ABBREV");
-		System.out.println();
-		model.write(System.out, "N-TRIPLE");
-	}
-
+	@Override
 	public Model getModel() {
-		return model;
+		throw new IllegalArgumentException("Use execute transaction to use the model to insert resources etc.");
+	}
+
+	public <T> T executeTransaction(KnowledgeBaseTransaction<T> transaction) {
+		LOG.debug("Started transaction " + transaction.toString());
+
+		Dataset ds = TDBFactory.createDataset(dbFolder);
+		ds.begin(ReadWrite.WRITE);
+
+		T result = transaction.execute(ds.getDefaultModel());
+
+		ds.commit();
+		ds.end();
+
+		LOG.debug("Completed transaction " + transaction.toString());
+		return result;
+	}
+
+	public <T> T executeQuery(KnowledgeBaseQuery<T> query) {
+		Dataset ds = TDBFactory.createDataset(dbFolder);
+		ds.begin(ReadWrite.READ);
+
+		T result = query.execute(ds.getDefaultModel());
+
+		ds.end();
+		return result;
+
 	}
 
 	public static void main(String args[]) {
@@ -64,13 +54,5 @@ public class KnowledgeBaseImpl implements KnowledgeBase {
 		System.out.println(kb.conceptExists("County"));
 
 		kb.writeModel();
-	}
-
-	public Resource getConceptMetaResource() {
-		return conceptMetaResource;
-	}
-
-	public Property getIsAProperty() {
-		return isAProperty;
 	}
 }

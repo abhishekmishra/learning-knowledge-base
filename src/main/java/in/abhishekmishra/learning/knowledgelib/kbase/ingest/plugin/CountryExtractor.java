@@ -4,16 +4,19 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import in.abhishekmishra.learning.knowledgelib.kbase.ConceptImpl;
 import in.abhishekmishra.learning.knowledgelib.kbase.KnowledgeBase;
-import in.abhishekmishra.learning.knowledgelib.kbase.KnowledgeBaseImpl;
+import in.abhishekmishra.learning.knowledgelib.kbase.SkeletalKnowledgeBaseImpl;
 
 /**
  * Extract countries and capitals from
@@ -23,6 +26,7 @@ import in.abhishekmishra.learning.knowledgelib.kbase.KnowledgeBaseImpl;
  *
  */
 public class CountryExtractor implements DataLoaderPlugin {
+	private static final Logger LOG = LoggerFactory.getLogger(CountryExtractor.class);
 
 	public static final String COUNTRY_NS = KnowledgeBase.BASE_URI + "country/#";
 	public static final String CAPITAL_NS = KnowledgeBase.BASE_URI + "capital/#";
@@ -33,14 +37,19 @@ public class CountryExtractor implements DataLoaderPlugin {
 	private Resource capitalResource;
 	private Property capitalOfProperty;
 	private Property capitalProperty;
-	
+
 	public CountryExtractor(KnowledgeBase kb) throws IOException {
 		this.kb = kb;
 		countryAndCapitals = new HashMap<String, String>();
+		LOG.debug("Started country extractor");
 		countryResource = kb.addConcept(new ConceptImpl("Country"));
 		capitalResource = kb.addConcept(new ConceptImpl("Capital"));
-		capitalOfProperty = kb.getModel().createProperty(KnowledgeBase.RELATIONS_NS + "capitalOf");
-		capitalProperty = kb.getModel().createProperty(KnowledgeBase.RELATIONS_NS + "capital");
+		capitalOfProperty = kb.executeTransaction((Model m) -> {
+			return m.createProperty(KnowledgeBase.RELATIONS_NS + "capitalOf");
+		});
+		capitalProperty = kb.executeTransaction((Model m) -> {
+			return m.createProperty(KnowledgeBase.RELATIONS_NS + "capital");
+		});
 	}
 
 	private void initData() throws IOException {
@@ -65,20 +74,21 @@ public class CountryExtractor implements DataLoaderPlugin {
 
 	public void load() throws IOException {
 		initData();
-		for (String country : countryAndCapitals.keySet()) {
-			Resource countryInstanceResource = kb.getModel().createResource(COUNTRY_NS + country);
-			kb.getModel().add(countryInstanceResource, kb.getIsAProperty(), countryResource);
+		kb.executeTransaction((Model m) -> {
+			for (String country : countryAndCapitals.keySet()) {
+				Resource countryInstanceResource = m.createResource(COUNTRY_NS + country);
+				m.add(countryInstanceResource, kb.getIsAProperty(), countryResource);
 
-			Resource capitalInstanceResource = kb.getModel()
-					.createResource(CAPITAL_NS + countryAndCapitals.get(country));
-			kb.getModel().add(capitalInstanceResource, kb.getIsAProperty(), capitalResource);
+				Resource capitalInstanceResource = m.createResource(CAPITAL_NS + countryAndCapitals.get(country));
+				m.add(capitalInstanceResource, kb.getIsAProperty(), capitalResource);
 
-			System.out.println(country + " \t\t| " + countryAndCapitals.get(country));
-			
-			kb.getModel().add(countryInstanceResource, capitalProperty, capitalInstanceResource);
-			kb.getModel().add(capitalInstanceResource, capitalOfProperty, countryInstanceResource);
-		}
+				System.out.println(country + " \t\t| " + countryAndCapitals.get(country));
 
+				m.add(countryInstanceResource, capitalProperty, capitalInstanceResource);
+				m.add(capitalInstanceResource, capitalOfProperty, countryInstanceResource);
+			}
+			return true;
+		});
 	}
 
 	public Resource getCountryResource() {
@@ -98,7 +108,8 @@ public class CountryExtractor implements DataLoaderPlugin {
 	}
 
 	public static void main(String args[]) throws IOException {
-		KnowledgeBaseImpl kb = new KnowledgeBaseImpl("test");
+		//KnowledgeBase kb = new KnowledgeBaseImpl("test");
+		KnowledgeBase kb = new SkeletalKnowledgeBaseImpl();
 
 		CountryExtractor countryExtractor = new CountryExtractor(kb);
 		countryExtractor.load();
