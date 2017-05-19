@@ -108,7 +108,7 @@ public class CountryExtractor implements DataLoaderPlugin {
 	}
 
 	public static void main(String args[]) throws IOException {
-		KnowledgeBase kb = new KnowledgeBaseImpl("test");
+		KnowledgeBase kb = new KnowledgeBaseImpl("src/main/resources/testdb.ttl");
 		//KnowledgeBase kb = new SkeletalKnowledgeBaseImpl();
 		kb.init();
 		CountryExtractor countryExtractor = new CountryExtractor(kb);

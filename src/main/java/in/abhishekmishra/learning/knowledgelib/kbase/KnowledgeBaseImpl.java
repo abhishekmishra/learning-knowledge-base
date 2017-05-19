@@ -10,11 +10,11 @@ import org.slf4j.LoggerFactory;
 public class KnowledgeBaseImpl extends SkeletalKnowledgeBaseImpl implements KnowledgeBase {
 	private static final Logger LOG = LoggerFactory.getLogger(KnowledgeBaseImpl.class);
 
-	private String dbFolder;
+	private String assemblerFile;
 
-	public KnowledgeBaseImpl(String dbFolder) {
+	public KnowledgeBaseImpl(String assemblerFile) {
 		super();
-		this.dbFolder = dbFolder;
+		this.assemblerFile = assemblerFile;
 	}
 
 	@Override
@@ -25,7 +25,9 @@ public class KnowledgeBaseImpl extends SkeletalKnowledgeBaseImpl implements Know
 	public <T> T executeTransaction(KnowledgeBaseTransaction<T> transaction) {
 		LOG.debug("Started transaction " + transaction.toString());
 
-		Dataset ds = TDBFactory.createDataset(dbFolder);
+		//Dataset ds = TDBFactory.createDataset(assemblerFile);
+		Dataset ds = TDBFactory.assembleDataset(assemblerFile);
+		
 		ds.begin(ReadWrite.WRITE);
 		T result = null;
 		try {
@@ -42,7 +44,9 @@ public class KnowledgeBaseImpl extends SkeletalKnowledgeBaseImpl implements Know
 	}
 
 	public <T> T executeQuery(KnowledgeBaseQuery<T> query) {
-		Dataset ds = TDBFactory.createDataset(dbFolder);
+		//Dataset ds = TDBFactory.createDataset(assemblerFile);
+		Dataset ds = TDBFactory.assembleDataset(assemblerFile);
+		
 		ds.begin(ReadWrite.READ);
 		T result = null;
 		try {
@@ -54,13 +58,5 @@ public class KnowledgeBaseImpl extends SkeletalKnowledgeBaseImpl implements Know
 		}
 		return result;
 
-	}
-
-	public static void main(String args[]) {
-		KnowledgeBaseImpl kb = new KnowledgeBaseImpl("test");
-		kb.addConcept(new ConceptImpl("Country"));
-		System.out.println(kb.conceptExists("County"));
-
-		kb.writeModel();
 	}
 }

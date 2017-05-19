@@ -17,7 +17,7 @@ public class CountryCapitalQuery {
 
 	public static void main(String args[]) throws IOException {
 
-		KnowledgeBaseImpl kb = new KnowledgeBaseImpl("test");
+		KnowledgeBaseImpl kb = new KnowledgeBaseImpl("src/main/resources/testdb.ttl");
 		CountryExtractor countryExtractor = new CountryExtractor(kb);
 		//countryExtractor.load();
 
