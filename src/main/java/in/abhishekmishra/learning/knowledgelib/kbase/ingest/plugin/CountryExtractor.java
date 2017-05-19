@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import in.abhishekmishra.learning.knowledgelib.kbase.ConceptImpl;
 import in.abhishekmishra.learning.knowledgelib.kbase.KnowledgeBase;
-import in.abhishekmishra.learning.knowledgelib.kbase.SkeletalKnowledgeBaseImpl;
+import in.abhishekmishra.learning.knowledgelib.kbase.KnowledgeBaseImpl;
 
 /**
  * Extract countries and capitals from
@@ -108,9 +108,9 @@ public class CountryExtractor implements DataLoaderPlugin {
 	}
 
 	public static void main(String args[]) throws IOException {
-		//KnowledgeBase kb = new KnowledgeBaseImpl("test");
-		KnowledgeBase kb = new SkeletalKnowledgeBaseImpl();
-
+		KnowledgeBase kb = new KnowledgeBaseImpl("test");
+		//KnowledgeBase kb = new SkeletalKnowledgeBaseImpl();
+		kb.init();
 		CountryExtractor countryExtractor = new CountryExtractor(kb);
 		countryExtractor.load();
 	}

@@ -27,11 +27,15 @@ public class KnowledgeBaseImpl extends SkeletalKnowledgeBaseImpl implements Know
 
 		Dataset ds = TDBFactory.createDataset(dbFolder);
 		ds.begin(ReadWrite.WRITE);
-
-		T result = transaction.execute(ds.getDefaultModel());
-
-		ds.commit();
-		ds.end();
+		T result = null;
+		try {
+			result = transaction.execute(ds.getDefaultModel());
+			ds.commit();
+		} catch (Exception e) {
+			LOG.error("Exception occured executing transaction." + e.getMessage());
+		} finally {
+			ds.end();
+		}
 
 		LOG.debug("Completed transaction " + transaction.toString());
 		return result;
@@ -40,10 +44,14 @@ public class KnowledgeBaseImpl extends SkeletalKnowledgeBaseImpl implements Know
 	public <T> T executeQuery(KnowledgeBaseQuery<T> query) {
 		Dataset ds = TDBFactory.createDataset(dbFolder);
 		ds.begin(ReadWrite.READ);
-
-		T result = query.execute(ds.getDefaultModel());
-
-		ds.end();
+		T result = null;
+		try {
+			result = query.execute(ds.getDefaultModel());
+		} catch (Exception e) {
+			LOG.error("Exception occured executing transaction." + e.getMessage());
+		} finally {
+			ds.end();
+		}
 		return result;
 
 	}

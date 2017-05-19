@@ -19,5 +19,7 @@ public interface KnowledgeBase {
 	public <T> T executeTransaction(KnowledgeBaseTransaction<T> transaction);
 
 	public <T> T executeQuery(KnowledgeBaseQuery<T> query);
+	
+	public void init();
 
 }

@@ -19,13 +19,13 @@ public class CountryCapitalQuery {
 
 		KnowledgeBaseImpl kb = new KnowledgeBaseImpl("test");
 		CountryExtractor countryExtractor = new CountryExtractor(kb);
-		countryExtractor.load();
+		//countryExtractor.load();
 
 		// list countries
 
-		kb.executeQuery((Model m) -> {
+		List<String> listOfCapitals = kb.executeQuery((Model m) -> {
 			List<String> capitals = new ArrayList<String>();
-			ResIterator iter = kb.getModel().listSubjectsWithProperty(countryExtractor.getCapitalOfProperty());
+			ResIterator iter = m.listSubjectsWithProperty(countryExtractor.getCapitalOfProperty());
 			while (iter.hasNext()) {
 				Resource r = iter.nextResource();
 				// System.out.println("Capital - " + r.toString());
@@ -34,9 +34,11 @@ public class CountryCapitalQuery {
 			return capitals;
 		});
 
-		kb.executeQuery((Model m) -> {
+		System.out.println(listOfCapitals);
+		
+		List<String> allStatements = kb.executeQuery((Model m) -> {
 			List<String> statements = new ArrayList<String>();
-			StmtIterator stmtIter = kb.getModel().listStatements();
+			StmtIterator stmtIter = m.listStatements();
 			while (stmtIter.hasNext()) {
 				Statement s = stmtIter.nextStatement();
 				// System.out.println(s);
@@ -45,6 +47,9 @@ public class CountryCapitalQuery {
 			return statements;
 		});
 
+		for(String s: allStatements) {
+			System.out.println(s);
+		}
 		// kb.getModel().write(System.out, "N-TRIPLE");
 		// kb.getModel().write(System.out, "RDF/XML-ABBREV");
 	}

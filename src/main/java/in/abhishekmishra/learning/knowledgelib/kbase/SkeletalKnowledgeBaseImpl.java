@@ -17,6 +17,11 @@ public class SkeletalKnowledgeBaseImpl implements KnowledgeBase {
 	public SkeletalKnowledgeBaseImpl() {
 	}
 
+	public void init() {
+		createConceptMetaResource();
+		createIsAProperty();
+	}
+
 	protected void initDatabase() {
 		model = ModelFactory.createDefaultModel();
 	}
@@ -43,10 +48,12 @@ public class SkeletalKnowledgeBaseImpl implements KnowledgeBase {
 	}
 
 	public void writeModel() {
-		// print the Model as RDF/XML
-		model.write(System.out, "RDF/XML-ABBREV");
-		System.out.println();
-		model.write(System.out, "N-TRIPLE");
+		executeQuery((Model m) -> {
+			m.write(System.out, "RDF/XML-ABBREV");
+			System.out.println();
+			model.write(System.out, "N-TRIPLE");
+			return false;
+		});
 	}
 
 	public Model getModel() {
@@ -67,23 +74,29 @@ public class SkeletalKnowledgeBaseImpl implements KnowledgeBase {
 	}
 
 	public Resource getConceptMetaResource() {
+		return conceptMetaResource;
+	}
+
+	private void createConceptMetaResource() {
 		if (conceptMetaResource == null) {
 			executeTransaction((Model m) -> {
 				conceptMetaResource = m.createResource(CONCEPT_NS + "Concept");
 				return true;
 			});
 		}
-		return conceptMetaResource;
 	}
 
 	public Property getIsAProperty() {
+		return isAProperty;
+	}
+
+	private void createIsAProperty() {
 		if (isAProperty == null) {
 			executeTransaction((Model m) -> {
 				isAProperty = m.createProperty(RELATIONS_NS + "isA");
 				return true;
 			});
 		}
-		return isAProperty;
 	}
 
 }
